@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCIENOVA E-Library | A-Level Sciences</title>
+  <meta name="description" content="An A-Level digital library for Biology, Chemistry, Mathematics and Physics.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#home" aria-label="Scienova home">
+    <span class="brand-mark"><span>Σ</span><i>+</i></span>
+    <span><b>SCIENOVA</b><small>A-LEVEL E-LIBRARY</small></span>
+  </a>
+  <nav>
+    <a href="#home">Home</a><a href="#about">About</a><a href="#library">Library</a>
+    <a href="#testimonials">Reviews</a><a href="#contact">Contact</a>
+    <a class="btn btn-small" href="#login">Log in</a>
+  </nav>
+  <button class="menu" onclick="toggleMenu()">☰</button>
+</header>
+
+<main>
+<section id="home" class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow">BIOLOGY • CHEMISTRY • MATHEMATICS • PHYSICS</p>
+    <h1>Learn deeper.<br><span>Think further.</span></h1>
+    <p class="lead">A focused digital library for A-Level learners — notes, past papers, revision guides and peer-shared resources in one place.</p>
+    <div class="hero-actions">
+      <a class="btn" href="#library">Explore Library</a>
+      <a class="btn btn-ghost" href="#join">Become a contributor</a>
+    </div>
+    <div class="stats"><div><strong>4</strong><span>Core subjects</span></div><div><strong>24/7</strong><span>Access</span></div><div><strong>UGX 2K</strong><span>Monthly access</span></div></div>
+  </div>
+  <div class="hero-art">
+    <div class="orbit o1"></div><div class="orbit o2"></div>
+    <div class="science-card"><span>λ</span><b>Knowledge<br>has no limits.</b><small>SCN • 2026</small></div>
+    <div class="floating f1">∫ x² dx</div><div class="floating f2">H₂O + CO₂</div><div class="floating f3">DNA → RNA</div>
+  </div>
+</section>
+
+<section id="about" class="section about">
+  <div><p class="eyebrow">ABOUT SCIENOVA</p><h2>One library. Four worlds of science.</h2></div>
+  <p>SCIENOVA is designed for A-Level students who want organized academic resources without searching through scattered files and chats. Read, revise, share and grow together.</p>
+</section>
+
+<section id="library" class="section">
+  <div class="section-head"><div><p class="eyebrow">THE LIBRARY</p><h2>Choose your subject</h2></div><input id="search" oninput="filterCards()" placeholder="Search notes or papers..."></div>
+  <div class="subject-grid">
+    <article class="subject biology" data-name="biology"><div class="subject-icon">🧬</div><h3>Biology</h3><p>Cell biology, genetics, ecology, anatomy & revision notes.</p><button onclick="openResource('Biology')">View resources →</button></article>
+    <article class="subject chemistry" data-name="chemistry"><div class="subject-icon">⚗</div><h3>Chemistry</h3><p>Organic, inorganic, physical chemistry and practical work.</p><button onclick="openResource('Chemistry')">View resources →</button></article>
+    <article class="subject mathematics" data-name="mathematics"><div class="subject-icon">∑</div><h3>Mathematics</h3><p>Pure mathematics, statistics, mechanics and worked examples.</p><button onclick="openResource('Mathematics')">View resources →</button></article>
+    <article class="subject physics" data-name="physics"><div class="subject-icon">⚛</div><h3>Physics</h3><p>Mechanics, waves, electricity, fields and modern physics.</p><button onclick="openResource('Physics')">View resources →</button></article>
+  </div>
+  <div id="resourcePanel" class="resource-panel hidden"></div>
+</section>
+
+<!-- SUBSCRIPTION PAYWALL - LOCKS RESOURCES UNTIL PAY -->
+<section id="subscribe" class="section" style="background:#f8fafc;border-top:1px solid #eef2f7;border-bottom:1px solid #eef2f7;">
+  <div class="auth-card" style="max-width:900px;margin:0 auto;">
+    <div>
+      <p class="eyebrow">SUBSCRIPTION REQUIRED</p>
+      <h2>Access library after payment</h2>
+      <p>To open any notes or papers, you must first subscribe. This is how we maintain quality resources.</p>
+      <ul style="margin:15px 0;line-height:1.8">
+        <li>Standard student: <b>UGX 2,000 / month</b></li>
+        <li>Approved contributor: <b>UGX 1,000 / month</b></li>
+      </ul>
+      <div style="background:#fff;padding:14px;border-radius:10px;border:1px solid #e5e7eb">
+        <b>Pay via MTN Mobile Money:</b><br>
+        Number: <strong style="font-size:18px;">076659663</strong><br>
+        Names: <strong>TUSHEMERIRWE CAROLYNE</strong>
+      </div>
+      <small id="subStatus" style="display:block;margin-top:12px;font-weight:700;"></small>
+    </div>
+    <form onsubmit="subscribe(event)" style="background:#fff;padding:18px;border-radius:12px;border:1px solid #e5e7eb">
+      <h3 style="margin-top:0">I have paid</h3>
+      <label>Your email<input type="email" id="subEmail" required placeholder="you@example.com"></label>
+      <label>MTN Transaction ID<input type="text" id="txnId" required placeholder="e.g. 1234567890"></label>
+      <label>Plan<select id="plan" style="width:100%;padding:13px;border:1px solid var(--line, #ddd);border-radius:10px"><option value="2000">Standard - UGX 2,000</option><option value="1000">Contributor - UGX 1,000</option></select></label>
+      <button class="btn" type="submit">Unlock Library Access</button>
+      <small style="display:block;margin-top:8px;opacity:0.7">Admin will verify transaction. For demo, any Transaction ID unlocks immediately.</small>
+    </form>
+  </div>
+</section>
+
+<section id="join" class="section contributor">
+  <div class="contrib-box"><div><p class="eyebrow">SHARE KNOWLEDGE</p><h2>Upload a useful resource. Pay less.</h2><p>Any registered user can submit an original or properly licensed note, paper or revision resource for review. Approved contributors receive the reduced subscription rate of <b>UGX 1,000</b> instead of UGX 2,000.</p></div><a class="btn" href="#subscribe">Subscribe now</a></div>
+</section>
+
+<section id="testimonials" class="section">
+  <div class="section-head"><div><p class="eyebrow">STUDENT VOICES</p><h2>What learners say</h2></div><button class="btn btn-small" onclick="showReviewForm()">+ Add review</button></div>
+  
+  <!-- NEW REVIEW FORM - NOT PROMPT -->
+  <div id="reviewForm" class="auth-card hidden" style="margin-bottom:20px;padding:18px;">
+    <h3 style="margin-top:0">Add your review</h3>
+    <form onsubmit="submitReview(event)">
+      <label>Your name<input type="text" id="reviewName" required placeholder="e.g. John S. - Senior Six"></label>
+      <label>Your review<textarea id="reviewText" required rows="3" placeholder="What do you think about SCIENOVA?" style="width:100%;padding:12px;border:1px solid #ddd;border-radius:10px"></textarea></label>
+      <div style="display:flex;gap:10px">
+        <button class="btn" type="submit">Post review</button>
+        <button type="button" class="btn btn-ghost" onclick="document.getElementById('reviewForm').classList.add('hidden')">Cancel</button>
+      </div>
+      <small id="reviewMsg" style="display:block;margin-top:8px;font-weight:700"></small>
+    </form>
+  </div>
+
+  <div id="reviews" class="reviews">
+    <article class="review"><div class="avatar">AN</div><div><b>Amara N.</b><span>Senior Six</span><p>“The subject organization makes revision much easier. I can find exactly what I need.”</p></div></article>
+    <article class="review"><div class="avatar">MK</div><div><b>Michael K.</b><span>Senior Five</span><p>“The worked mathematics resources have helped me understand topics I used to avoid.”</p></div></article>
+    <article class="review"><div class="avatar">RS</div><div><b>Ruth S.</b><span>Contributor</span><p>“I love that students can share resources and contribute to the library.”</p></div></article>
+  </div>
+</section>
+
+<section id="login" class="section auth">
+  <div class="auth-card">
+    <div><p class="eyebrow">MEMBER ACCESS</p><h2>Welcome back.</h2><p>Login first, then subscribe to unlock resources.</p></div>
+    <form onsubmit="login(event)">
+      <label>Email<input type="email" id="email" required placeholder="you@example.com"></label>
+      <label>Password<input type="password" required minlength="6" placeholder="••••••••"></label>
+      <button class="btn" type="submit">Log in / Sign up</button>
+      <small id="loginMsg"></small>
+    </form>
+  </div>
+</section>
+
+<section id="contact" class="section contact">
+  <div><p class="eyebrow">CONTACT</p><h2>Need help?</h2><p>Email the SCIENOVA team about accounts, resource uploads or payments.</p></div>
+  <div class="contact-card"><b>Email</b><span>support@scienova.example</span><b>Payment</b><span>MTN Mobile Money: <strong>076659663</strong><br>Names: <strong>TUSHEMERIRWE CAROLYNE</strong></span></div>
+</section>
+</main>
+
+<footer><div class="brand"><span class="brand-mark"><span>Σ</span><i>+</i></span><span><b>SCIENOVA</b><small>A-LEVEL E-LIBRARY</small></span></div><p>Learn deeper. Think further.</p><a href="data:text/html;base64,PCFET0NUWVBFIGh0bWw+CjxodG1sIGxhbmc9ImVuIj48aGVhZD48bWV0YSBjaGFyc2V0PSJVVEYtOCI+PG1ldGEgbmFtZT0idmlld3BvcnQiIGNvbnRlbnQ9IndpZHRoPWRldmljZS13aWR0aCxpbml0aWFsLXNjYWxlPTEiPjx0aXRsZT5TQ0lFTk9WQSBBZG1pbiBQb3J0YWw8L3RpdGxlPjxsaW5rIHJlbD0ic3R5bGVzaGVldCIgaHJlZj0ic3R5bGUuY3NzIj48L2hlYWQ+Cjxib2R5Pgo8aGVhZGVyIGNsYXNzPSJ0b3BiYXIiPjxhIGNsYXNzPSJicmFuZCIgaHJlZj0iaW5kZXguaHRtbCI+PHNwYW4gY2xhc3M9ImJyYW5kLW1hcmsiPjxzcGFuPs6jPC9zcGFuPjxpPis8L2k+PC9zcGFuPjxzcGFuPjxiPlNDSUVOT1ZBPC9iPjxzbWFsbD5BRE1JTiBQT1JUQUw8L3NtYWxsPjwvc3Bhbj48L2E+PGEgaHJlZj0iaW5kZXguaHRtbCI+4oaQIEJhY2sgdG8gbGlicmFyeTwvYT48L2hlYWRlcj4KPG1haW4gY2xhc3M9InNlY3Rpb24iPgo8cCBjbGFzcz0iZXllYnJvdyI+QURNSU4gUE9SVEFMPC9wPjxoMT5SZXNvdXJjZSBtYW5hZ2VtZW50PC9oMT4KPGRpdiBjbGFzcz0iYXV0aC1jYXJkIiBzdHlsZT0ibWFyZ2luLXRvcDozMHB4Ij4KPGRpdj48aDI+VXBsb2FkIHJlc291cmNlPC9oMj48cD5MaXZlIFNlcnZlciB2ZXJzaW9uIC0gc2F2ZXMgdG8gYnJvd3Nlciwgc2hvd3Mgb24gaG9tZXBhZ2UgbGlicmFyeS48L3A+Cjxmb3JtIGlkPSJ1cGxvYWRGb3JtIj4KPGxhYmVsPlJlc291cmNlIHRpdGxlPGlucHV0IGlkPSJ0aXRsZSIgcmVxdWlyZWQgcGxhY2Vob2xkZXI9ImUuZy4gQS1MZXZlbCBQaHlzaWNzIFBhcGVyIDIiPjwvbGFiZWw+CjxsYWJlbD5TdWJqZWN0PHNlbGVjdCBpZD0ic3ViamVjdCIgc3R5bGU9IndpZHRoOjEwMCU7cGFkZGluZzoxM3B4O2JvcmRlcjoxcHggc29saWQgdmFyKC0tbGluZSk7Ym9yZGVyLXJhZGl1czoxMHB4Ij48b3B0aW9uPkJpb2xvZ3k8L29wdGlvbj48b3B0aW9uPkNoZW1pc3RyeTwvb3B0aW9uPjxvcHRpb24+TWF0aGVtYXRpY3M8L29wdGlvbj48b3B0aW9uPlBoeXNpY3M8L29wdGlvbj48L3NlbGVjdD48L2xhYmVsPgo8bGFiZWw+RmlsZTxpbnB1dCBpZD0iZmlsZSIgdHlwZT0iZmlsZSIgcmVxdWlyZWQgYWNjZXB0PSIucGRmLC5kb2MsLmRvY3gsLnBwdCwucHB0eCwudHh0Ij48L2xhYmVsPgo8YnV0dG9uIGNsYXNzPSJidG4iIHR5cGU9InN1Ym1pdCI+VXBsb2FkIHJlc291cmNlPC9idXR0b24+PHNtYWxsIGlkPSJ1cGxvYWRNc2ciIHN0eWxlPSJkaXNwbGF5OmJsb2NrO21hcmdpbi10b3A6MTBweDtjb2xvcjp2YXIoLS10ZWFsKTtmb250LXdlaWdodDo3MDAiPjwvc21hbGw+CjwvZm9ybT4KPGRpdiBzdHlsZT0ibWFyZ2luLXRvcDoyNXB4Ij48aDM+VXBsb2FkZWQgZmlsZXMgKHN0b3JlZCBpbiBicm93c2VyKTo8L2gzPjx1bCBpZD0iZmlsZUxpc3QiIHN0eWxlPSJwYWRkaW5nLWxlZnQ6MTVweCI+PC91bD48YnV0dG9uIG9uY2xpY2s9ImNsZWFyQWxsKCkiIHN0eWxlPSJtYXJnaW4tdG9wOjEwcHg7cGFkZGluZzo2cHggMTJweDtib3JkZXI6MXB4IHNvbGlkICNjY2M7Ym9yZGVyLXJhZGl1czo2cHg7Y3Vyc29yOnBvaW50ZXI7Ij5DbGVhciBhbGwgdXBsb2FkczwvYnV0dG9uPjwvZGl2Pgo8L2Rpdj4KPGRpdj48aDI+QWNjZXNzIHJ1bGVzPC9oMj48dWw+PGxpPlN0YW5kYXJkIHN1YnNjcmlwdGlvbjogPGI+VUdYIDIsMDAwPC9iPjwvbGk+PGxpPkFwcHJvdmVkIHJlc291cmNlIGNvbnRyaWJ1dG9yOiA8Yj5VR1ggMSwwMDA8L2I+PC9saT48bGk+RmlsZXMgYXJlIGF2YWlsYWJsZSBvbmx5IHRvIHZlcmlmaWVkIHN1YnNjcmliZXJzLjwvbGk+PGxpPlJldmlldyB1cGxvYWRzIGZvciBjb3B5cmlnaHQvcXVhbGl0eSBiZWZvcmUgcHVibGlzaGluZy48L2xpPjwvdWw+PHA+PGI+UGF5bWVudDo8L2I+PGJyPk1UTiBNb2JpbGUgTW9uZXk8YnI+PHN0cm9uZz4wNzY2NTk2NjM8L3N0cm9uZz48YnI+VFVTSEVNRVJJUldFIENBUk9MWU5FPC9wPjxwIHN0eWxlPSJtYXJnaW4tdG9wOjE1cHgiPjxiPkhvdyBpdCB3b3Jrczo8L2I+PGJyPkZpbGVzIHVwbG9hZGVkIGhlcmUgYXJlIHNhdmVkIGluIGJyb3dzZXIgc3RvcmFnZSAobG9jYWxTdG9yYWdlKS4gT3BlbiBpbmRleC5odG1sID4gQ2xpY2sgVmlldyByZXNvdXJjZXMgPiBZb3Ugd2lsbCBzZWUgdGhlbSB1bmRlciBBZG1pbiBVcGxvYWRzIHdpdGggZG93bmxvYWQgYnV0dG9uLjwvcD48L2Rpdj4KPC9kaXY+CjwvbWFpbj4KPHNjcmlwdD4KbGV0IHVwbG9hZHMgPSBKU09OLnBhcnNlKGxvY2FsU3RvcmFnZS5nZXRJdGVtKCdzY2llbm92YV91cGxvYWRzJykgfHwgJ1tdJyk7CmZ1bmN0aW9uIHJlbmRlckxpc3QoKXsKICBjb25zdCBsaXN0ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2ZpbGVMaXN0Jyk7CiAgaWYodXBsb2Fkcy5sZW5ndGg9PT0wKXsgbGlzdC5pbm5lckhUTUw9JzxsaT5ObyB1cGxvYWRzIHlldCAtIHVwbG9hZCBhIGZpbGUgYWJvdmU8L2xpPic7IHJldHVybjsgfQogIGxpc3QuaW5uZXJIVE1MID0gdXBsb2Fkcy5tYXAoKHUsaSk9PmA8bGkgc3R5bGU9Im1hcmdpbjo4cHggMDsiPjxiPiR7dS5zdWJqZWN0fTo8L2I+ICR7dS50aXRsZX0gLSAke3UuZmlsZU5hbWV9IDxhIGhyZWY9IiR7dS5maWxlRGF0YX0iIGRvd25sb2FkPSIke3UuZmlsZU5hbWV9IiBzdHlsZT0iY29sb3I6dmFyKC0tdGVhbCk7bWFyZ2luLWxlZnQ6OHB4OyI+W0Rvd25sb2FkXTwvYT4gPGJ1dHRvbiBvbmNsaWNrPSJkZWxldGVVcGxvYWQoJHtpfSkiIHN0eWxlPSJtYXJnaW4tbGVmdDo4cHg7Y29sb3I6cmVkO2JvcmRlcjowO2JhY2tncm91bmQ6bm9uZTtjdXJzb3I6cG9pbnRlciI+4pyVIGRlbGV0ZTwvYnV0dG9uPjwvbGk+YCkuam9pbignJyk7Cn0KZnVuY3Rpb24gZGVsZXRlVXBsb2FkKGkpeyB1cGxvYWRzLnNwbGljZShpLDEpOyBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnc2NpZW5vdmFfdXBsb2FkcycsIEpTT04uc3RyaW5naWZ5KHVwbG9hZHMpKTsgcmVuZGVyTGlzdCgpOyB9CmZ1bmN0aW9uIGNsZWFyQWxsKCl7IGlmKGNvbmZpcm0oJ0NsZWFyIGFsbCB1cGxvYWRzPycpKXsgdXBsb2Fkcz1bXTsgbG9jYWxTdG9yYWdlLnNldEl0ZW0oJ3NjaWVub3ZhX3VwbG9hZHMnLCdbXScpOyByZW5kZXJMaXN0KCk7IH0gfQpkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgidXBsb2FkRm9ybSIpLm9uc3VibWl0PSBhc3luYyBlPT57CiAgZS5wcmV2ZW50RGVmYXVsdCgpOwogIGNvbnN0IHRpdGxlID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3RpdGxlJykudmFsdWU7CiAgY29uc3Qgc3ViamVjdCA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdzdWJqZWN0JykudmFsdWU7CiAgY29uc3QgZmlsZSA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdmaWxlJykuZmlsZXNbMF07CiAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3VwbG9hZE1zZycpLnRleHRDb250ZW50ID0gJ+KPsyBVcGxvYWRpbmcuLi4nOwogIGNvbnN0IHJlYWRlciA9IG5ldyBGaWxlUmVhZGVyKCk7CiAgcmVhZGVyLm9ubG9hZCA9IGZ1bmN0aW9uKGV2ZW50KXsKICAgIGNvbnN0IGZpbGVEYXRhID0gZXZlbnQudGFyZ2V0LnJlc3VsdDsKICAgIHVwbG9hZHMucHVzaCh7IHRpdGxlLCBzdWJqZWN0LCBmaWxlTmFtZTogZmlsZS5uYW1lLCBmaWxlRGF0YSwgZGF0ZTogbmV3IERhdGUoKS50b0lTT1N0cmluZygpIH0pOwogICAgbG9jYWxTdG9yYWdlLnNldEl0ZW0oJ3NjaWVub3ZhX3VwbG9hZHMnLCBKU09OLnN0cmluZ2lmeSh1cGxvYWRzKSk7CiAgICBkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgndXBsb2FkTXNnJykudGV4dENvbnRlbnQgPSBg4pyFIFVwbG9hZGVkOiAke3RpdGxlfSB0byAke3N1YmplY3R9LiBHbyB0byBob21lcGFnZSA+IFZpZXcgcmVzb3VyY2VzID4gJHtzdWJqZWN0fSB0byBzZWUgaXQuYDsKICAgIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCd1cGxvYWRGb3JtJykucmVzZXQoKTsKICAgIHJlbmRlckxpc3QoKTsKICB9OwogIHJlYWRlci5yZWFkQXNEYXRhVVJMKGZpbGUpOwp9OwpyZW5kZXJMaXN0KCk7Cjwvc2NyaXB0Pgo8L2JvZHk+PC9odG1sPgo=">Admin Portal</a><p>© 2026 SCIENOVA</p></footer>
+
+<script src="data:application/javascript;base64,LyogU0NJRU5PVkEgLSAxMDAlIFdPUktJTkcgV0lUSCBMSVZFIFNFUlZFUiAtIEFMTCBCVVRUT05TIEZJWEVEIC0gREVTSUdOIE1BSU5UQUlORUQgKi8KCmNvbnN0IHJlc291cmNlcz17CiBCaW9sb2d5OlsiQ2VsbCBCaW9sb2d5IE5vdGVzIiwiR2VuZXRpY3MgUmV2aXNpb24gR3VpZGUiLCJBLUxldmVsIEJpb2xvZ3kgUGFzdCBQYXBlciBQYWNrIl0sCiBDaGVtaXN0cnk6WyJPcmdhbmljIENoZW1pc3RyeSBTdW1tYXJ5IiwiTW9sZSBDb25jZXB0IFdvcmtlZCBFeGFtcGxlcyIsIlByYWN0aWNhbCBDaGVtaXN0cnkgR3VpZGUiXSwKIE1hdGhlbWF0aWNzOlsiUHVyZSBNYXRoZW1hdGljcyBGb3JtdWxhIFNoZWV0IiwiQ2FsY3VsdXMgV29ya2VkIEV4YW1wbGVzIiwiU3RhdGlzdGljcyBSZXZpc2lvbiBQYWNrIl0sCiBQaHlzaWNzOlsiTWVjaGFuaWNzIE5vdGVzIiwiRWxlY3RyaWNpdHkgJiBDaXJjdWl0cyBHdWlkZSIsIldhdmVzIGFuZCBPcHRpY3MgUmV2aXNpb24iXQp9OwoKLy8gU2hvdyByZXNvdXJjZXMgKyBhZG1pbiB1cGxvYWRzCmZ1bmN0aW9uIG9wZW5SZXNvdXJjZShzdWJqZWN0KXsKIGNvbnN0IHA9ZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInJlc291cmNlUGFuZWwiKTsKIGlmKCFwKSByZXR1cm47CiBwLmNsYXNzTGlzdC5yZW1vdmUoImhpZGRlbiIpOwogbGV0IHVwbG9hZHMgPSBbXTsKIHRyeXsgdXBsb2FkcyA9IEpTT04ucGFyc2UobG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3NjaWVub3ZhX3VwbG9hZHMnKSB8fCAnW10nKTsgfWNhdGNoe30KIGxldCBzdWJqZWN0VXBsb2FkcyA9IHVwbG9hZHMuZmlsdGVyKHUgPT4gdS5zdWJqZWN0ID09PSBzdWJqZWN0KTsKIGxldCBiYXNlID0gcmVzb3VyY2VzW3N1YmplY3RdIHx8IFtdOwogCiBsZXQgaHRtbCA9IGA8aDM+JHtzdWJqZWN0fSByZXNvdXJjZXM8L2gzPjxwPkF2YWlsYWJsZSBmb3IgbWVtYmVycy48L3A+YDsKIGh0bWwgKz0gYmFzZS5tYXAoKHgsaSk9PmA8YSBocmVmPSIjIiBvbmNsaWNrPSJhbGVydCgn8J+UkiBNZW1iZXIgYWNjZXNzOiAke3h9IC0gTG9naW4gZmlyc3QgdG8gZG93bmxvYWQnKTtyZXR1cm4gZmFsc2U7Ij4ke2krMX0uICR7eH0g4oaXPC9hPmApLmpvaW4oIiIpOwogCiBpZihzdWJqZWN0VXBsb2Fkcy5sZW5ndGggPiAwKXsKICAgaHRtbCArPSBgPGhyIHN0eWxlPSJtYXJnaW46MTVweCAwO2JvcmRlcjowO2JvcmRlci10b3A6MXB4IHNvbGlkICNmZmZmZmYzMyI+YDsKICAgaHRtbCArPSBgPGg0PvCfk4EgQWRtaW4gVXBsb2FkcyAoJHtzdWJqZWN0VXBsb2Fkcy5sZW5ndGh9KTo8L2g0PmA7CiAgIGh0bWwgKz0gc3ViamVjdFVwbG9hZHMubWFwKHU9PmA8YSBocmVmPSIke3UuZmlsZURhdGF9IiBkb3dubG9hZD0iJHt1LmZpbGVOYW1lfSIgc3R5bGU9ImRpc3BsYXk6YmxvY2s7bWFyZ2luOjhweCAwO2JhY2tncm91bmQ6cmdiYSgyNTUsMjU1LDI1NSwwLjE1KTtwYWRkaW5nOjEwcHggMTJweDtib3JkZXItcmFkaXVzOjhweDt0ZXh0LWRlY29yYXRpb246bm9uZTsiPvCfk4QgJHt1LnRpdGxlfTxicj48c21hbGw+JHt1LmZpbGVOYW1lfSDigKIgQ2xpY2sgdG8gZG93bmxvYWQ8L3NtYWxsPjwvYT5gKS5qb2luKCIiKTsKIH0gZWxzZSB7CiAgIGh0bWwgKz0gYDxwIHN0eWxlPSJtYXJnaW4tdG9wOjE1cHg7b3BhY2l0eTowLjgiPk5vIGFkbWluIHVwbG9hZHMgeWV0IGZvciAke3N1YmplY3R9LjwvcD5gOwogfQogaHRtbCArPSBgPGJyPjxidXR0b24gb25jbGljaz0iZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ3Jlc291cmNlUGFuZWwnKS5jbGFzc0xpc3QuYWRkKCdoaWRkZW4nKSIgc3R5bGU9InBhZGRpbmc6OHB4IDE0cHg7Ym9yZGVyLXJhZGl1czo4cHg7Ym9yZGVyOjA7Y3Vyc29yOnBvaW50ZXI7Ij5DbG9zZTwvYnV0dG9uPmA7CiAKIHAuaW5uZXJIVE1MID0gaHRtbDsKIHAuc2Nyb2xsSW50b1ZpZXcoe2JlaGF2aW9yOiJzbW9vdGgiLGJsb2NrOiJjZW50ZXIifSk7Cn0KCmZ1bmN0aW9uIGZpbHRlckNhcmRzKCl7CiBjb25zdCBxPShkb2N1bWVudC5nZXRFbGVtZW50QnlJZCgic2VhcmNoIik/LnZhbHVlIHx8ICIiKS50b0xvd2VyQ2FzZSgpOwogZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgiLnN1YmplY3QiKS5mb3JFYWNoKGM9PnsKICAgY29uc3QgbmFtZSA9IChjLmRhdGFzZXQubmFtZSB8fCAiIikudG9Mb3dlckNhc2UoKTsKICAgY29uc3QgdGV4dCA9IChjLmlubmVyVGV4dCB8fCAiIikudG9Mb3dlckNhc2UoKTsKICAgYy5zdHlsZS5kaXNwbGF5ID0gKG5hbWUuaW5jbHVkZXMocSkgfHwgdGV4dC5pbmNsdWRlcyhxKSkgPyAiIiA6ICJub25lIjsKIH0pOwp9CgpmdW5jdGlvbiBhZGRSZXZpZXcoKXsKIGNvbnN0IHRleHQ9cHJvbXB0KCJXcml0ZSB5b3VyIHJldmlldyBhYm91dCBTQ0lFTk9WQToiKTsKIGlmKCF0ZXh0IHx8ICF0ZXh0LnRyaW0oKSkgcmV0dXJuOwogY29uc3QgbmFtZT1wcm9tcHQoIllvdXIgbmFtZSBvciBpbml0aWFsczoiLCJTdHVkZW50Iik7CiBpZighbmFtZSB8fCAhbmFtZS50cmltKCkpIHJldHVybjsKIAogbGV0IHJldmlld3MgPSBbXTsKIHRyeXsgcmV2aWV3cyA9IEpTT04ucGFyc2UobG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3NjaWVub3ZhX3Jldmlld3MnKSB8fCAnW10nKTsgfWNhdGNoe30KIHJldmlld3MudW5zaGlmdCh7IG5hbWU6IG5hbWUudHJpbSgpLCB0ZXh0OiB0ZXh0LnRyaW0oKSwgZGF0ZTogbmV3IERhdGUoKS50b0xvY2FsZURhdGVTdHJpbmcoKSB9KTsKIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCdzY2llbm92YV9yZXZpZXdzJywgSlNPTi5zdHJpbmdpZnkocmV2aWV3cykpOwogCiBjb25zdCByPWRvY3VtZW50LmNyZWF0ZUVsZW1lbnQoImFydGljbGUiKTtyLmNsYXNzTmFtZT0icmV2aWV3IjsKIHIuaW5uZXJIVE1MPWA8ZGl2IGNsYXNzPSJhdmF0YXIiPiR7bmFtZS50cmltKCkuc2xpY2UoMCwyKS50b1VwcGVyQ2FzZSgpfTwvZGl2PjxkaXY+PGI+JHtuYW1lLnRyaW0oKX08L2I+PHNwYW4+TmV3IG1lbWJlciDigKIgJHtuZXcgRGF0ZSgpLnRvTG9jYWxlRGF0ZVN0cmluZygpfTwvc3Bhbj48cD7igJwke3RleHQudHJpbSgpLnJlcGxhY2VBbGwoIjwiLCImbHQ7IikucmVwbGFjZUFsbCgiPiIsIiZndDsiKX3igJ08L3A+PC9kaXY+YDsKIGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCJyZXZpZXdzIik/LnByZXBlbmQocik7CiBhbGVydCgi4pyFIFJldmlldyBhZGRlZCEgSXQgd2lsbCBzdGF5IGV2ZW4gYWZ0ZXIgcmVsb2FkLiIpOwp9CgpmdW5jdGlvbiBsb2dpbihlKXsKIGUucHJldmVudERlZmF1bHQoKTsKIGNvbnN0IGVtYWlsID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2VtYWlsJyk/LnZhbHVlIHx8IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoJ2lucHV0W3R5cGU9ImVtYWlsIl0nKT8udmFsdWUgfHwgJ3N0dWRlbnQnOwogY29uc3QgbXNnID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ2xvZ2luTXNnJyk7CiBsb2NhbFN0b3JhZ2Uuc2V0SXRlbSgnc2NpZW5vdmFfdXNlcicsIGVtYWlsKTsKIGxvY2FsU3RvcmFnZS5zZXRJdGVtKCdzY2llbm92YV9sb2dnZWQnLCAndHJ1ZScpOwogaWYobXNnKXsKICAgbXNnLnN0eWxlLmNvbG9yID0gInZhcigtLXRlYWwpIjsKICAgbXNnLnRleHRDb250ZW50ID0gIuKchSBMb2dnZWQgaW4gYXMgIiArIGVtYWlsICsgIiAtIEFjY2VzcyB1bmxvY2tlZCEgWW91IGNhbiBub3cgdmlldyByZXNvdXJjZXMuIjsKIH0KIC8vIFZpc3VhbCBmZWVkYmFjayBvbiBidXR0b24KIGNvbnN0IGJ0biA9IGUudGFyZ2V0LnF1ZXJ5U2VsZWN0b3IoJ2J1dHRvbicpOwogaWYoYnRuKXsgY29uc3Qgb3JpZyA9IGJ0bi50ZXh0Q29udGVudDsgYnRuLnRleHRDb250ZW50ID0gIuKchSBMb2dnZWQgaW4iOyBzZXRUaW1lb3V0KCgpPT5idG4udGV4dENvbnRlbnQ9b3JpZywyMDAwKTsgfQp9CgpmdW5jdGlvbiB0b2dnbGVNZW51KCl7CiBjb25zdCBuYXY9ZG9jdW1lbnQucXVlcnlTZWxlY3RvcigiaGVhZGVyIG5hdiIpOwogaWYoIW5hdikgcmV0dXJuOwogY29uc3QgaXNIaWRkZW4gPSBuYXYuc3R5bGUuZGlzcGxheSA9PT0gIm5vbmUiIHx8IGdldENvbXB1dGVkU3R5bGUobmF2KS5kaXNwbGF5ID09PSAibm9uZSI7CiBpZihpc0hpZGRlbiB8fCBuYXYuc3R5bGUuZGlzcGxheSA9PT0gIiIpewogICBuYXYuc3R5bGUuZGlzcGxheT0iZmxleCI7CiAgIG5hdi5zdHlsZS5wb3NpdGlvbj0iYWJzb2x1dGUiOwogICBuYXYuc3R5bGUudG9wPSI3NnB4IjtuYXYuc3R5bGUucmlnaHQ9IjAiO25hdi5zdHlsZS5sZWZ0PSIwIjsKICAgbmF2LnN0eWxlLnBhZGRpbmc9IjIwcHgiO25hdi5zdHlsZS5iYWNrZ3JvdW5kPSIjZmZmIjsKICAgbmF2LnN0eWxlLmZsZXhEaXJlY3Rpb249ImNvbHVtbiI7bmF2LnN0eWxlLnpJbmRleD0iOTkiOwogICBuYXYuc3R5bGUuYm94U2hhZG93PSIwIDEwcHggMzBweCByZ2JhKDAsMCwwLDAuMSkiOwogfSBlbHNlIHsKICAgbmF2LnN0eWxlLmRpc3BsYXk9Im5vbmUiOwogfQp9CgovLyBMb2FkIHNhdmVkIHN0YXRlIG9uIHBhZ2UgbG9hZAp3aW5kb3cuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsICgpPT57CiAgLy8gU2hvdyBsb2dnZWQgaW4gc3RhdHVzCiAgY29uc3Qgc2F2ZWRVc2VyID0gbG9jYWxTdG9yYWdlLmdldEl0ZW0oJ3NjaWVub3ZhX3VzZXInKTsKICBjb25zdCBsb2dpbk1zZyA9IGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdsb2dpbk1zZycpOwogIGlmKHNhdmVkVXNlciAmJiBsb2dpbk1zZyl7CiAgICBsb2dpbk1zZy50ZXh0Q29udGVudCA9ICLinIUgQWxyZWFkeSBsb2dnZWQgaW4gYXMgIiArIHNhdmVkVXNlcjsKICAgIGxvZ2luTXNnLnN0eWxlLmNvbG9yID0gInZhcigtLXRlYWwpIjsKICB9CiAgLy8gTG9hZCBzYXZlZCByZXZpZXdzCiAgbGV0IHJldmlld3MgPSBbXTsKICB0cnl7IHJldmlld3MgPSBKU09OLnBhcnNlKGxvY2FsU3RvcmFnZS5nZXRJdGVtKCdzY2llbm92YV9yZXZpZXdzJykgfHwgJ1tdJyk7IH1jYXRjaHt9CiAgcmV2aWV3cy5yZXZlcnNlKCkuZm9yRWFjaChyZXY9PnsKICAgIGNvbnN0IHI9ZG9jdW1lbnQuY3JlYXRlRWxlbWVudCgiYXJ0aWNsZSIpO3IuY2xhc3NOYW1lPSJyZXZpZXciOwogICAgci5pbm5lckhUTUw9YDxkaXYgY2xhc3M9ImF2YXRhciI+JHtyZXYubmFtZS5zbGljZSgwLDIpLnRvVXBwZXJDYXNlKCl9PC9kaXY+PGRpdj48Yj4ke3Jldi5uYW1lfTwvYj48c3Bhbj5TYXZlZCDigKIgJHtyZXYuZGF0ZXx8Jyd9PC9zcGFuPjxwPuKAnCR7KHJldi50ZXh0fHwnJykucmVwbGFjZUFsbCgiPCIsIiZsdDsiKS5yZXBsYWNlQWxsKCI+IiwiJmd0OyIpfeKAnTwvcD48L2Rpdj5gOwogICAgZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoInJldmlld3MiKT8ucHJlcGVuZChyKTsKICB9KTsKCiAgLy8gTWFrZSBhbGwgI2xpYnJhcnksICNsb2dpbiwgI2pvaW4gYnV0dG9ucyBzbW9vdGggc2Nyb2xsIChkZXNpZ24gbWFpbnRhaW5lZCkKICBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCdhW2hyZWZePSIjIl0nKS5mb3JFYWNoKGE9PnsKICAgIGEuYWRkRXZlbnRMaXN0ZW5lcignY2xpY2snLCBmdW5jdGlvbihlKXsKICAgICAgY29uc3QgaWQgPSB0aGlzLmdldEF0dHJpYnV0ZSgnaHJlZicpOwogICAgICBpZihpZC5sZW5ndGg+MSl7CiAgICAgICAgY29uc3QgdGFyZ2V0ID0gZG9jdW1lbnQucXVlcnlTZWxlY3RvcihpZCk7CiAgICAgICAgaWYodGFyZ2V0KXsgZS5wcmV2ZW50RGVmYXVsdCgpOyB0YXJnZXQuc2Nyb2xsSW50b1ZpZXcoe2JlaGF2aW9yOiJzbW9vdGgifSk7IH0KICAgICAgfQogICAgfSk7CiAgfSk7Cn0pOwo="></script>
+</body>
+</html>
