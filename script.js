@@ -1,167 +1,184 @@
 
-const express = require('express');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
-const cors = require('cors');
+let currentUser = JSON.parse(localStorage.getItem('scienova_user')||'null');
+let currentSub = JSON.parse(localStorage.getItem('scienova_sub')||'null');
+let selectedPlan = 'weekly';
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// CRASH FIX: Ensure directories exist (Railway compatible)
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-const DATA_DIR = path.join(__dirname, 'data');
-const PENDING_DIR = path.join(UPLOAD_DIR, 'pending');
-
-[UPLOAD_DIR, DATA_DIR, PENDING_DIR].forEach(dir=>{
-  if(!fs.existsSync(dir)) fs.mkdirSync(dir, {recursive:true});
-});
-
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-const SUBS_FILE = path.join(DATA_DIR, 'subscriptions.json');
-const CONTRIB_FILE = path.join(DATA_DIR, 'contributions.json');
-const STATS_FILE = path.join(DATA_DIR, 'stats.json');
-
-function readJson(file, def){ try{ if(fs.existsSync(file)) return JSON.parse(fs.readFileSync(file,'utf8')); }catch(e){ console.log('read error', file, e.message);} return def; }
-function writeJson(file, data){ try{ fs.writeFileSync(file, JSON.stringify(data, null, 2)); }catch(e){ console.log('write error', e.message);} }
-
-let users = readJson(USERS_FILE, []);
-let subscriptions = readJson(SUBS_FILE, []);
-let contributions = readJson(CONTRIB_FILE, []);
-let stats = readJson(STATS_FILE, {}); // {filename: {views, downloads}}
-
-if(!fs.existsSync(USERS_FILE)) writeJson(USERS_FILE, []);
-if(!fs.existsSync(SUBS_FILE)) writeJson(SUBS_FILE, []);
-if(!fs.existsSync(CONTRIB_FILE)) writeJson(CONTRIB_FILE, []);
-if(!fs.existsSync(STATS_FILE)) writeJson(STATS_FILE, {});
-
-app.use(express.static(__dirname));
-app.use('/uploads', express.static(UPLOAD_DIR));
-
-// --- AUTH ---
-app.post('/api/register', (req,res)=>{
-  const {name,email,password,role} = req.body;
-  if(!email || !password) return res.status(400).json({error:'Email and password required'});
-  if(users.find(u=>u.email.toLowerCase()===email.toLowerCase())) return res.status(400).json({error:'Account exists, login instead'});
-  const user = {id:Date.now().toString(), name:name||email.split('@')[0], email:email.toLowerCase(), password, role: role||'student', createdAt:new Date().toISOString()};
-  users.push(user);
-  writeJson(USERS_FILE, users);
-  res.json({success:true, user:{id:user.id,name:user.name,email:user.email,role:user.role}});
-});
-
-app.post('/api/login', (req,res)=>{
-  const {email,password} = req.body;
-  const user = users.find(u=>u.email.toLowerCase()===email.toLowerCase() && u.password===password);
-  if(!user) return res.status(401).json({error:'Invalid email or password'});
-  const sub = subscriptions.find(s=>s.email===user.email && new Date(s.expiry)>new Date());
-  res.json({success:true, user:{id:user.id,name:user.name,email:user.email,role:user.role}, subscription:sub||null});
-});
-
-app.post('/api/subscribe', (req,res)=>{
-  const {email, transactionId, plan} = req.body;
-  if(!email || !transactionId) return res.status(400).json({error:'Email and Transaction ID required'});
-  const days = plan==='monthly'?30:7;
-  const expiry = new Date(Date.now()+days*24*60*60*1000).toISOString();
-  subscriptions = subscriptions.filter(s=>s.email!==email.toLowerCase());
-  const sub = {email:email.toLowerCase(), plan:plan||'weekly', transactionId, expiry, createdAt:new Date().toISOString()};
-  subscriptions.push(sub);
-  writeJson(SUBS_FILE, subscriptions);
-  res.json({success:true, subscription:sub});
-});
-
-app.get('/api/check-subscription', (req,res)=>{
-  const email = (req.query.email||'').toLowerCase();
-  const sub = subscriptions.find(s=>s.email===email && new Date(s.expiry)>new Date());
-  res.json({subscribed:!!sub, subscription:sub||null});
-});
-
-// --- RESOURCES WITH VIEWS/DOWNLOADS ---
-app.get('/api/resources', (req,res)=>{
-  try{
-    const files = fs.readdirSync(UPLOAD_DIR).filter(f=>!f.startsWith('.') && f!=='pending' && fs.statSync(path.join(UPLOAD_DIR,f)).isFile());
-    const resources = files.map(f=>{
-      const stat = fs.statSync(path.join(UPLOAD_DIR,f));
-      const s = stats[f] || {views:0, downloads:0};
-      return {filename:f, url:'/uploads/'+encodeURIComponent(f), size:stat.size, createdAt:stat.mtime, views:s.views, downloads:s.downloads};
-    }).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-    res.json(resources);
-  }catch(e){ console.log(e); res.json([]); }
-});
-
-// Track view
-app.post('/api/view/:filename', (req,res)=>{
-  const fn = req.params.filename;
-  if(!stats[fn]) stats[fn] = {views:0, downloads:0};
-  stats[fn].views++;
-  writeJson(STATS_FILE, stats);
-  res.json({success:true, stats:stats[fn]});
-});
-
-// Track download
-app.post('/api/download/:filename', (req,res)=>{
-  const fn = req.params.filename;
-  if(!stats[fn]) stats[fn] = {views:0, downloads:0};
-  stats[fn].downloads++;
-  writeJson(STATS_FILE, stats);
-  res.json({success:true, stats:stats[fn]});
-});
-
-app.get('/api/contributions', (req,res)=>{ res.json(contributions); });
-app.get('/api/payments', (req,res)=>{ res.json([...subscriptions].reverse()); });
-app.get('/api/stats', (req,res)=>{ res.json(stats); });
-
-// --- UPLOAD ---
-const storage = multer.diskStorage({
-  destination:(req,file,cb)=>cb(null,UPLOAD_DIR),
-  filename:(req,file,cb)=>{
-    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g,'_');
-    cb(null, Date.now()+'_'+safe);
+function updateNav(){
+  const loginBtn = document.getElementById('loginBtn');
+  const logoutBtn = document.getElementById('logoutBtn');
+  const userInfo = document.getElementById('userInfo');
+  const navContrib = document.getElementById('navContributor');
+  const navAdmin = document.getElementById('navAdmin');
+  const subStatus = document.getElementById('subStatus');
+  if(currentUser){
+    loginBtn.style.display='none';
+    logoutBtn.style.display='inline-block';
+    userInfo.textContent = currentUser.name+' ('+currentUser.role+')';
+    if(currentUser.role==='contributor' || currentUser.role==='admin'){
+      navContrib.style.display='inline-block';
+    }
+    if(currentUser.email==='bralys@example.com' || currentUser.role==='admin'){
+      navAdmin.style.display='inline-block';
+    }
+  }else{
+    loginBtn.style.display='inline-block';
+    logoutBtn.style.display='none';
+    userInfo.textContent='';
+    navContrib.style.display='none';
+    navAdmin.style.display='none';
   }
-});
-const upload = multer({storage});
-app.post('/api/upload', upload.single('file'), (req,res)=>{
-  if(!req.file) return res.status(400).json({error:'No file'});
-  res.json({success:true, filename:req.file.filename, url:'/uploads/'+req.file.filename});
+  // check sub
+  if(currentUser){
+    fetch('/api/check-subscription?email='+encodeURIComponent(currentUser.email))
+      .then(r=>r.json()).then(d=>{
+        if(d.subscribed){
+          currentSub = d.subscription;
+          localStorage.setItem('scienova_sub', JSON.stringify(currentSub));
+          subStatus.textContent = '✅ Subscribed ('+currentSub.plan+') till '+new Date(currentSub.expiry).toLocaleDateString();
+          subStatus.className='subStatus active';
+        }else{
+          currentSub=null;
+          localStorage.removeItem('scienova_sub');
+          subStatus.textContent='❌ Not subscribed - Subscribe to download';
+          subStatus.className='subStatus';
+        }
+      });
+  }else{
+    subStatus.textContent='🔒 Login required to download';
+  }
+}
+
+// Auth modal logic
+const authModal = document.getElementById('authModal');
+document.getElementById('loginBtn').onclick = ()=>{ authModal.style.display='block'; };
+document.getElementById('closeAuth').onclick = ()=>authModal.style.display='none';
+let authMode='register';
+document.getElementById('tabLogin').onclick = ()=>{ authMode='login'; document.getElementById('authTitle').textContent='Login'; document.getElementById('tabLogin').classList.add('active'); document.getElementById('tabRegister').classList.remove('active'); document.getElementById('authName').style.display='none'; document.getElementById('authRole').style.display='none'; document.getElementById('authSubmit').textContent='Login'; };
+document.getElementById('tabRegister').onclick = ()=>{ authMode='register'; document.getElementById('authTitle').textContent='Create Account'; document.getElementById('tabRegister').classList.add('active'); document.getElementById('tabLogin').classList.remove('active'); document.getElementById('authName').style.display='block'; document.getElementById('authRole').style.display='block'; document.getElementById('authSubmit').textContent='Create Account'; };
+document.getElementById('tabRegister').click();
+
+document.getElementById('authSubmit').onclick = async ()=>{
+  const name=document.getElementById('authName').value;
+  const email=document.getElementById('authEmail').value.trim();
+  const password=document.getElementById('authPass').value;
+  const role=document.getElementById('authRole').value;
+  const msg=document.getElementById('authMsg');
+  if(!email||!password){ msg.textContent='Fill email and password'; return; }
+  try{
+    const url = authMode==='register'?'/api/register':'/api/login';
+    const body = authMode==='register'?{name,email,password,role}:{email,password};
+    const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error);
+    currentUser=data.user;
+    localStorage.setItem('scienova_user', JSON.stringify(currentUser));
+    if(data.subscription){ currentSub=data.subscription; localStorage.setItem('scienova_sub', JSON.stringify(data.subscription)); }
+    msg.textContent='Success!';
+    authModal.style.display='none';
+    updateNav();
+    loadResources();
+  }catch(e){ msg.textContent=e.message; }
+};
+
+document.getElementById('logoutBtn').onclick = ()=>{
+  currentUser=null; currentSub=null;
+  localStorage.removeItem('scienova_user'); localStorage.removeItem('scienova_sub');
+  updateNav(); loadResources();
+};
+
+document.getElementById('navAdmin').onclick = ()=>{ window.location.href='/admin.html'; };
+
+// Contributor
+const contribModal = document.getElementById('contribModal');
+document.getElementById('navContributor').onclick = ()=>{ contribModal.style.display='block'; };
+document.getElementById('closeContrib').onclick = ()=>contribModal.style.display='none';
+document.getElementById('contribSubmit').onclick = async ()=>{
+  if(!currentUser){ alert('Login first as contributor'); return; }
+  const file = document.getElementById('contribFile').files[0];
+  const subject = document.getElementById('contribSubject').value;
+  const desc = document.getElementById('contribDesc').value;
+  const msg = document.getElementById('contribMsg');
+  if(!file){ msg.textContent='Select file'; return; }
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('email', currentUser.email);
+  fd.append('subject', subject);
+  fd.append('description', desc);
+  msg.textContent='Uploading...';
+  const res = await fetch('/api/contributor-upload',{method:'POST',body:fd});
+  const data = await res.json();
+  msg.textContent = data.message || 'Uploaded!';
+};
+
+function canDownload(){
+  if(!currentUser){ return {ok:false, reason:'Please create account and login first'}; }
+  if(!currentSub || new Date(currentSub.expiry)<=new Date()){ return {ok:false, reason:'Subscription required - Pay UGX 2000 to 076659663'}; }
+  return {ok:true};
+}
+
+// Resources
+async function loadResources(filter='all'){
+  const res = await fetch('/api/resources');
+  const files = await res.json();
+  const container = document.getElementById('resources');
+  container.innerHTML='';
+  files.filter(f=>{
+    if(filter==='all') return true;
+    return f.filename.toLowerCase().includes(filter.toLowerCase());
+  }).forEach(f=>{
+    const div=document.createElement('div');
+    div.className='card';
+    div.innerHTML=`<h3>${f.filename}</h3><p>${(f.size/1024).toFixed(1)} KB</p><button class="dlBtn">Download</button>`;
+    div.querySelector('.dlBtn').onclick = ()=>{
+      const check = canDownload();
+      if(!check.ok){
+        if(!currentUser){ authModal.style.display='block'; }
+        else{ payModal.style.display='block'; document.getElementById('payMsg').textContent=check.reason; }
+        return;
+      }
+      // authorized download
+      window.location.href = f.url;
+    };
+    container.appendChild(div);
+  });
+}
+
+// Filters
+document.querySelectorAll('.filterBtn').forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll('.filterBtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    loadResources(b.dataset.sub);
+  };
 });
 
-const contribStorage = multer.diskStorage({
-  destination:(req,file,cb)=>cb(null,PENDING_DIR),
-  filename:(req,file,cb)=>cb(null, Date.now()+'_'+file.originalname.replace(/[^a-zA-Z0-9._-]/g,'_'))
+// Paywall
+const payModal = document.getElementById('payModal');
+document.getElementById('closePay').onclick=()=>payModal.style.display='none';
+document.querySelectorAll('.plan').forEach(p=>{
+  p.onclick=()=>{
+    document.querySelectorAll('.plan').forEach(x=>x.classList.remove('selected'));
+    p.classList.add('selected');
+    selectedPlan=p.dataset.plan;
+  };
 });
-const contribUpload = multer({storage:contribStorage});
+document.querySelector('.plan[data-plan="weekly"]').classList.add('selected');
+document.getElementById('confirmPay').onclick = async ()=>{
+  const tid=document.getElementById('transId').value.trim();
+  const msg=document.getElementById('payMsg');
+  if(!tid){ msg.textContent='Enter Transaction ID'; return; }
+  if(!currentUser){ msg.textContent='Login first'; return; }
+  const res = await fetch('/api/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:currentUser.email, transactionId:tid, plan:selectedPlan})});
+  const data=await res.json();
+  if(data.success){
+    currentSub=data.subscription;
+    localStorage.setItem('scienova_sub', JSON.stringify(currentSub));
+    msg.textContent='✅ Subscribed! You can now download';
+    setTimeout(()=>{payModal.style.display='none'; updateNav();},1000);
+  }else{ msg.textContent=data.error; }
+};
 
-app.post('/api/contributor-upload', contribUpload.single('file'), (req,res)=>{
-  const {email,subject,description} = req.body;
-  const entry = {id:Date.now().toString(), email, subject, description, filename:req.file.filename, originalName:req.file.originalname, status:'pending', createdAt:new Date().toISOString()};
-  contributions.push(entry);
-  writeJson(CONTRIB_FILE, contributions);
-  res.json({success:true, message:'Uploaded! Admin will review.'});
-});
+window.onclick = (e)=>{ if(e.target===authModal) authModal.style.display='none'; if(e.target===payModal) payModal.style.display='none'; if(e.target===contribModal) contribModal.style.display='none'; };
 
-app.post('/api/approve-contribution', (req,res)=>{
-  const {id} = req.body;
-  const item = contributions.find(c=>c.id===id);
-  if(!item) return res.status(404).json({error:'Not found'});
-  const oldPath = path.join(PENDING_DIR, item.filename);
-  const newPath = path.join(UPLOAD_DIR, item.filename);
-  if(fs.existsSync(oldPath)) fs.renameSync(oldPath,newPath);
-  item.status='approved';
-  writeJson(CONTRIB_FILE, contributions);
-  res.json({success:true});
-});
-
-app.post('/api/reject-contribution', (req,res)=>{
-  const {id} = req.body;
-  contributions = contributions.filter(c=>c.id!==id);
-  writeJson(CONTRIB_FILE, contributions);
-  res.json({success:true});
-});
-
-app.get('*', (req,res)=>{ res.sendFile(path.join(__dirname,'index.html')); });
-
-// CRITICAL FIX FOR RAILWAY: bind 0.0.0.0
-app.listen(PORT, '0.0.0.0', ()=>console.log('SCIENOVA running on port', PORT, 'host 0.0.0.0'));
+updateNav();
+loadResources();
