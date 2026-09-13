@@ -1,167 +1,85 @@
-
 const express = require('express');
-const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
 const cors = require('cors');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = 3000;
 
+// Setup storage for uploads
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+});
+const upload = multer({ storage });
+
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(__dirname)); // serves your index.html, admin.html, style.css, script.js
+app.use('/uploads', express.static(uploadDir));
 
-// CRASH FIX: Ensure directories exist (Railway compatible)
-const UPLOAD_DIR = path.join(__dirname, 'uploads');
-const DATA_DIR = path.join(__dirname, 'data');
-const PENDING_DIR = path.join(UPLOAD_DIR, 'pending');
+// Fake Database (use JSON files)
+let resources = {
+  Biology: ["Cell Biology Notes","Genetics Revision Guide","A-Level Biology Past Paper Pack"],
+  Chemistry: ["Organic Chemistry Summary","Mole Concept Worked Examples","Practical Chemistry Guide"],
+  Mathematics: ["Pure Mathematics Formula Sheet","Calculus Worked Examples","Statistics Revision Pack"],
+  Physics: ["Mechanics Notes","Electricity & Circuits Guide","Waves and Optics Revision"]
+};
+let reviews = [
+  { name: "Amara N.", role: "Senior Six", text: "The subject organization makes revision much easier. I can find exactly what I need." },
+  { name: "Michael K.", role: "Senior Five", text: "The worked mathematics resources have helped me understand topics I used to avoid." }
+];
+let users = [];
 
-[UPLOAD_DIR, DATA_DIR, PENDING_DIR].forEach(dir=>{
-  if(!fs.existsSync(dir)) fs.mkdirSync(dir, {recursive:true});
+// === BUTTON FUNCTIONALITY ===
+
+// 1. Button: View resources -> openResource('Biology') button
+app.get('/api/resources/:subject', (req, res) => {
+  const subject = req.params.subject;
+  res.json({ subject, files: resources[subject] || [] });
 });
 
-const USERS_FILE = path.join(DATA_DIR, 'users.json');
-const SUBS_FILE = path.join(DATA_DIR, 'subscriptions.json');
-const CONTRIB_FILE = path.join(DATA_DIR, 'contributions.json');
-const STATS_FILE = path.join(DATA_DIR, 'stats.json');
-
-function readJson(file, def){ try{ if(fs.existsSync(file)) return JSON.parse(fs.readFileSync(file,'utf8')); }catch(e){ console.log('read error', file, e.message);} return def; }
-function writeJson(file, data){ try{ fs.writeFileSync(file, JSON.stringify(data, null, 2)); }catch(e){ console.log('write error', e.message);} }
-
-let users = readJson(USERS_FILE, []);
-let subscriptions = readJson(SUBS_FILE, []);
-let contributions = readJson(CONTRIB_FILE, []);
-let stats = readJson(STATS_FILE, {}); // {filename: {views, downloads}}
-
-if(!fs.existsSync(USERS_FILE)) writeJson(USERS_FILE, []);
-if(!fs.existsSync(SUBS_FILE)) writeJson(SUBS_FILE, []);
-if(!fs.existsSync(CONTRIB_FILE)) writeJson(CONTRIB_FILE, []);
-if(!fs.existsSync(STATS_FILE)) writeJson(STATS_FILE, {});
-
-app.use(express.static(__dirname));
-app.use('/uploads', express.static(UPLOAD_DIR));
-
-// --- AUTH ---
-app.post('/api/register', (req,res)=>{
-  const {name,email,password,role} = req.body;
-  if(!email || !password) return res.status(400).json({error:'Email and password required'});
-  if(users.find(u=>u.email.toLowerCase()===email.toLowerCase())) return res.status(400).json({error:'Account exists, login instead'});
-  const user = {id:Date.now().toString(), name:name||email.split('@')[0], email:email.toLowerCase(), password, role: role||'student', createdAt:new Date().toISOString()};
-  users.push(user);
-  writeJson(USERS_FILE, users);
-  res.json({success:true, user:{id:user.id,name:user.name,email:user.email,role:user.role}});
+// 2. Button: Add review -> + Add review button
+app.post('/api/reviews', (req, res) => {
+  const { name, text } = req.body;
+  if(!name ||!text) return res.json({ success: false });
+  reviews.unshift({ name, role: "New member", text });
+  res.json({ success: true, reviews });
 });
+app.get('/api/reviews', (req, res) => res.json(reviews));
 
-app.post('/api/login', (req,res)=>{
-  const {email,password} = req.body;
-  const user = users.find(u=>u.email.toLowerCase()===email.toLowerCase() && u.password===password);
-  if(!user) return res.status(401).json({error:'Invalid email or password'});
-  const sub = subscriptions.find(s=>s.email===user.email && new Date(s.expiry)>new Date());
-  res.json({success:true, user:{id:user.id,name:user.name,email:user.email,role:user.role}, subscription:sub||null});
-});
-
-app.post('/api/subscribe', (req,res)=>{
-  const {email, transactionId, plan} = req.body;
-  if(!email || !transactionId) return res.status(400).json({error:'Email and Transaction ID required'});
-  const days = plan==='monthly'?30:7;
-  const expiry = new Date(Date.now()+days*24*60*60*1000).toISOString();
-  subscriptions = subscriptions.filter(s=>s.email!==email.toLowerCase());
-  const sub = {email:email.toLowerCase(), plan:plan||'weekly', transactionId, expiry, createdAt:new Date().toISOString()};
-  subscriptions.push(sub);
-  writeJson(SUBS_FILE, subscriptions);
-  res.json({success:true, subscription:sub});
-});
-
-app.get('/api/check-subscription', (req,res)=>{
-  const email = (req.query.email||'').toLowerCase();
-  const sub = subscriptions.find(s=>s.email===email && new Date(s.expiry)>new Date());
-  res.json({subscribed:!!sub, subscription:sub||null});
-});
-
-// --- RESOURCES WITH VIEWS/DOWNLOADS ---
-app.get('/api/resources', (req,res)=>{
-  try{
-    const files = fs.readdirSync(UPLOAD_DIR).filter(f=>!f.startsWith('.') && f!=='pending' && fs.statSync(path.join(UPLOAD_DIR,f)).isFile());
-    const resources = files.map(f=>{
-      const stat = fs.statSync(path.join(UPLOAD_DIR,f));
-      const s = stats[f] || {views:0, downloads:0};
-      return {filename:f, url:'/uploads/'+encodeURIComponent(f), size:stat.size, createdAt:stat.mtime, views:s.views, downloads:s.downloads};
-    }).sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
-    res.json(resources);
-  }catch(e){ console.log(e); res.json([]); }
-});
-
-// Track view
-app.post('/api/view/:filename', (req,res)=>{
-  const fn = req.params.filename;
-  if(!stats[fn]) stats[fn] = {views:0, downloads:0};
-  stats[fn].views++;
-  writeJson(STATS_FILE, stats);
-  res.json({success:true, stats:stats[fn]});
-});
-
-// Track download
-app.post('/api/download/:filename', (req,res)=>{
-  const fn = req.params.filename;
-  if(!stats[fn]) stats[fn] = {views:0, downloads:0};
-  stats[fn].downloads++;
-  writeJson(STATS_FILE, stats);
-  res.json({success:true, stats:stats[fn]});
-});
-
-app.get('/api/contributions', (req,res)=>{ res.json(contributions); });
-app.get('/api/payments', (req,res)=>{ res.json([...subscriptions].reverse()); });
-app.get('/api/stats', (req,res)=>{ res.json(stats); });
-
-// --- UPLOAD ---
-const storage = multer.diskStorage({
-  destination:(req,file,cb)=>cb(null,UPLOAD_DIR),
-  filename:(req,file,cb)=>{
-    const safe = file.originalname.replace(/[^a-zA-Z0-9._-]/g,'_');
-    cb(null, Date.now()+'_'+safe);
+// 3. Button: Login / Signup -> Log in button
+app.post('/api/login', (req, res) => {
+  const { email, password } = req.body;
+  const user = users.find(u => u.email === email);
+  if(user) {
+    res.json({ success: true, message: "Login successful", user });
+  } else {
+    // Auto-create for demo
+    const newUser = { id: Date.now(), email, password };
+    users.push(newUser);
+    res.json({ success: true, message: "Account created & logged in", user: newUser });
   }
 });
-const upload = multer({storage});
-app.post('/api/upload', upload.single('file'), (req,res)=>{
-  if(!req.file) return res.status(400).json({error:'No file'});
-  res.json({success:true, filename:req.file.filename, url:'/uploads/'+req.file.filename});
+
+// 4. Button: Admin Upload -> Upload resource button in admin.html
+app.post('/api/upload', upload.single('file'), (req, res) => {
+  const { title, subject } = req.body;
+  if (!resources[subject]) resources[subject] = [];
+  resources[subject].push(title + ` (${req.file.filename})`);
+  res.json({ success: true, message: `Uploaded: ${title} to ${subject}` });
 });
 
-const contribStorage = multer.diskStorage({
-  destination:(req,file,cb)=>cb(null,PENDING_DIR),
-  filename:(req,file,cb)=>cb(null, Date.now()+'_'+file.originalname.replace(/[^a-zA-Z0-9._-]/g,'_'))
+// Home
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+
+app.listen(PORT, () => {
+  console.log(`✅ SCIENOVA running at http://localhost:${PORT}`);
+  console.log(`✅ Admin at http://localhost:${PORT}/admin.html`);
 });
-const contribUpload = multer({storage:contribStorage});
-
-app.post('/api/contributor-upload', contribUpload.single('file'), (req,res)=>{
-  const {email,subject,description} = req.body;
-  const entry = {id:Date.now().toString(), email, subject, description, filename:req.file.filename, originalName:req.file.originalname, status:'pending', createdAt:new Date().toISOString()};
-  contributions.push(entry);
-  writeJson(CONTRIB_FILE, contributions);
-  res.json({success:true, message:'Uploaded! Admin will review.'});
-});
-
-app.post('/api/approve-contribution', (req,res)=>{
-  const {id} = req.body;
-  const item = contributions.find(c=>c.id===id);
-  if(!item) return res.status(404).json({error:'Not found'});
-  const oldPath = path.join(PENDING_DIR, item.filename);
-  const newPath = path.join(UPLOAD_DIR, item.filename);
-  if(fs.existsSync(oldPath)) fs.renameSync(oldPath,newPath);
-  item.status='approved';
-  writeJson(CONTRIB_FILE, contributions);
-  res.json({success:true});
-});
-
-app.post('/api/reject-contribution', (req,res)=>{
-  const {id} = req.body;
-  contributions = contributions.filter(c=>c.id!==id);
-  writeJson(CONTRIB_FILE, contributions);
-  res.json({success:true});
-});
-
-app.get('*', (req,res)=>{ res.sendFile(path.join(__dirname,'index.html')); });
-
-// CRITICAL FIX FOR RAILWAY: bind 0.0.0.0
-app.listen(PORT, '0.0.0.0', ()=>console.log('SCIENOVA running on port', PORT, 'host 0.0.0.0'));
