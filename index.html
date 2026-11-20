@@ -1,68 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SCIENOVA - Uganda Science E-Library</title><link rel="stylesheet" href="style.css"></head>
-<body>
-<header>
-<div class="logo">S³ SCIENOVA <span class="badge">3.0</span></div>
-<input id="search" placeholder="Search papers, authors, schools...">
-<span id="walletPill" onclick="openModal('walletModal')">Wallet: UGX <b id="walletBal">0</b></span>
-<button onclick="openModal('dropModal')">+ Drop Paper</button>
-<button onclick="openModal('aiModal')">🤖 AI Generator</button>
-<button id="loginBtn" onclick="openModal('authModal')">Login / Create Account</button>
-<button id="logoutBtn" style="display:none" onclick="logout()">Logout</button>
-</header>
-
-<div id="authModal" class="modal"><div class="modal-content">
-<h2>Create Account / Login</h2>
-<input id="regName" placeholder="Full Name"><input id="regEmail" placeholder="Email" type="email">
-<input id="regPhone" placeholder="Phone e.g. 0761234567">
-<input id="regPass" placeholder="Password - KEEP IT, YOU MASTERED IT" type="password">
-<input id="regPin" placeholder="Create 4-digit PIN (linked to phone)" maxlength="4" type="password">
-<select id="regRole"><option>Student</option><option>Contributor</option><option>Teacher</option></select>
-<button onclick="createAccount()">Create Account</button><hr>
-<input id="loginPhone" placeholder="Phone"><input id="loginPass" placeholder="Password" type="password">
-<button onclick="loginUser()">Login</button><p id="authMsg"></p>
-<button onclick="forgotPin()">Forgot PIN? (Needs Phone + Email)</button>
-<button onclick="forgotPassword()">Forgot Password?</button>
-</div></div>
-
-<div id="walletModal" class="modal"><div class="modal-content">
-<h2>My Wallet - <span id="walletName"></span></h2><p>Phone: <b id="walletPhone"></b></p>
-<h1>UGX <span id="walletBal2">0</span></h1>
-<input id="depositAmt" placeholder="Amount e.g. 5000" type="number">
-<input id="depositPin" placeholder="Enter PIN for this phone" maxlength="4" type="password">
-<select id="depositMethod"><option>MTN MoMo 0761234567</option><option>Airtel Money 0701234567</option></select>
-<input id="depositTx" placeholder="Transaction ID from SMS">
-<button onclick="deposit()">Deposit - Verify PIN for Phone</button><p id="depositMsg"></p>
-<div id="depositBar" style="display:none">Loading... <span id="depPct">0%</span></div>
-<h3>My Downloads</h3><div id="myDownloads"></div>
-<h3>My Earnings (60%)</h3><div id="myEarnings">UGX 0</div>
-<button onclick="changePin()">Change PIN</button>
-<button onclick="downloadReceipt()">Download Receipt</button>
-</div></div>
-
-<div id="dropModal" class="modal"><div class="modal-content">
-<h2>Drop Paper - ACTIVE INSTANTLY</h2>
-<input id="paperTitle" placeholder="Paper title">
-<select id="paperSubject"><option>Biology</option><option>Chemistry</option><option>Physics</option><option>Mathematics</option><option>Geography</option><option>History</option></select>
-<input id="paperLevel" placeholder="Level e.g. S.4"><input id="paperSchool" placeholder="School">
-<input type="file" id="paperFile"><button onclick="dropPaper()">Upload - Go LIVE Instantly</button><p id="dropMsg"></p>
-</div></div>
-
-<div id="aiModal" class="modal"><div class="modal-content">
-<h2>🤖 SCIENOVA AI Generator - Prompt + Search Engines</h2>
-<textarea id="aiPrompt" placeholder="e.g. Generate 10 hard UCE Biology scenarios about photosynthesis for S.4 in Uganda..."></textarea>
-<label><input type="checkbox" checked> Google - <button onclick="connectEngine('Google')">Connect Google</button> <span id="googleStatus">Not Connected</span></label><br>
-<label><input type="checkbox"> Bing - <button onclick="connectEngine('Bing')">Connect Bing</button></label><br>
-<label><input type="checkbox"> 【entity-Wikipedia¦canonical_name=Wikipedia】 - <button onclick="connectEngine('【entity-Wikipedia¦canonical_name=Wikipedia】')">Connect 【entity-Wikipedia¦canonical_name=Wikipedia】</button></label><br>
-<label><input type="checkbox"> DuckDuckGo - <button onclick="connectEngine('DuckDuckGo')">Connect DuckDuckGo</button></label><br>
-<select id="aiModel"><option>SCIENOVA AI</option><option>GPT</option><option>Gemini</option><option>【entity-Muse¦canonical_name=Muse】</option></select>
-<button onclick="generateAI()">✨ Generate with AI</button><div id="aiLog"></div><div id="aiResults"></div>
-</div></div>
-
-<main><section class="hero"><h1>Uganda's #1 Science E-Library</h1><p>Login → Deposit with PIN → Buy PDF with Wallet</p><button onclick="openModal('aiModal')">🎲 Scenario Generator - AI Prompt</button></section>
-<section id="resources"></section></main>
-<footer><a href="#" onclick="openPage('about')">About</a> | <a href="#" onclick="openPage('contact')">Contact</a> | <a href="#" onclick="openPage('terms')">Terms</a> | <a href="#" onclick="openPage('privacy')">Privacy</a> | <a href="#" onclick="openPage('refund')">Refund</a> | <a href="#" onclick="openPage('faq')">FAQ</a> | <a href="#" onclick="openPage('adminLink')">Admin (Secret)</a><p>WhatsApp +256 761234567 | SCIENOVA 2026</p></footer>
-<a href="https://wa.me/256761234567" class="whatsapp">WhatsApp Chat</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SCIENOVA E-Library | A-Level Biology, Chemistry, Mathematics, Physics</title><link rel="stylesheet" href="style.css"></head>
+<body><header><div class="logo">SCIENOVA <span>E-LIBRARY</span></div><nav>
+<button onclick="showSection('home')">Home</button><button onclick="showSection('papers')">Papers</button>
+<button onclick="showSection('wallet')">My Wallet</button><button onclick="showSection('ai')">AI Generator</button>
+<button id="loginBtn" onclick="showSection('auth')">Login / Create Account</button><button id="logoutBtn" class="hidden" onclick="logout()">Logout</button>
+</nav></header>
+<div class="hero"><h1>A-Level Biology • Chemistry • Mathematics • Physics</h1><p>UGX 2,000 Subscription • Single Paper UGX 1,000 • MTN MoMo 076659663 - TUSHEMERIRWE CAROLYNE</p><p id="welcomeMsg">Create account, deposit to wallet, then buy & download.</p></div>
+<section id="home" class="paywall"><h2>🔐 Paywall - Create Account First</h2><p class="muted">You must create account + pay before downloading.</p>
+<input id="regName" placeholder="Full Name"><input id="regPhone" placeholder="Phone e.g 076659663"><input id="regPass" type="password" placeholder="Password - keep it on screen">
+<input id="regPin" inputmode="numeric" placeholder="4-digit PIN - must match your phone"><div class="bar"><i id="regBar"></i></div><p id="regMsg" class="muted"></p>
+<button class="btn" onclick="register()">Create Account</button><br><br>
+<input id="loginPhone" placeholder="Phone"><input id="loginPass" type="password" placeholder="Password"><button class="btn gold" onclick="login()">Login</button></section>
+<section id="papers" class="hidden"><div style="max-width:1100px;margin:auto;padding:10px 18px"><h2>📚 All Papers</h2>
+<label>Subject <select id="filterSubject" onchange="renderPapers()"><option value="">All</option><option>Biology</option><option>Chemistry</option><option>Mathematics</option><option>Physics</option></select></label>
+<label>Search <input id="searchBox" oninput="renderPapers()" placeholder="Search paper..."></label></div><div class="grid" id="papersGrid"></div></section>
+<section id="wallet" class="hidden"><div class="paywall"><h2>💰 My Wallet</h2><p>Balance: <b id="walletBal">UGX 0</b></p>
+<input id="depAmount" type="number" placeholder="Amount e.g 2000"><input id="depPin" inputmode="numeric" placeholder="Enter PIN to confirm"><div class="bar"><i id="walletBar"></i></div>
+<button class="btn green" onclick="deposit()">Deposit to Wallet</button><br><br>
+<button class="btn gold" onclick="buySubscription()">Buy Subscription - UGX 2000 (from Wallet)</button><p id="walletMsg" class="muted"></p></div></section>
+<section id="ai" class="hidden"><div class="paywall"><h2>🤖 AI Scenario Generator</h2><p class="muted">Type prompt, connect Google / Bing / DuckDuckGo / Brave / YouTube / Wikipedia</p>
+<input id="aiTopic" placeholder="e.g Photosynthesis A-Level scenario"><select id="aiEngine"><option>Google</option><option>Bing</option><option>DuckDuckGo</option><option>Brave</option><option>YouTube</option><option>Wikipedia</option></select>
+<button class="btn" onclick="generateAI()">Generate Scenario</button><button class="btn gold" onclick="refineAI()">Refine Prompt</button>
+<div id="aiOut" style="white-space:pre-wrap;background:#f7f7f7;padding:12px;border-radius:10px;margin-top:10px"></div><div id="aiHistory" class="muted"></div></div></section>
+<section id="auth" class="hidden"><div class="paywall"><h2>Login / Create Account</h2><button class="btn" onclick="showSection('home')">Go to Home Login</button></div></section>
+<footer>SCIENOVA E-Library • Masaka, Uganda • Admin is hidden - only with secret code SCIENOVA2026</footer>
 <script src="script.js"></script></body></html>
