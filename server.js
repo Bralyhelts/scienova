@@ -1,85 +1,19 @@
-const express = require('express');
-const path = require('path');
-const fs = require('fs');
-const multer = require('multer');
-const cors = require('cors');
-
-const app = express();
-const PORT = 3000;
-
-// Setup storage for uploads
-const uploadDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
-});
-const upload = multer({ storage });
-
-// Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(__dirname)); // serves your index.html, admin.html, style.css, script.js
-app.use('/uploads', express.static(uploadDir));
-
-// Fake Database (use JSON files)
-let resources = {
-  Biology: ["Cell Biology Notes","Genetics Revision Guide","A-Level Biology Past Paper Pack"],
-  Chemistry: ["Organic Chemistry Summary","Mole Concept Worked Examples","Practical Chemistry Guide"],
-  Mathematics: ["Pure Mathematics Formula Sheet","Calculus Worked Examples","Statistics Revision Pack"],
-  Physics: ["Mechanics Notes","Electricity & Circuits Guide","Waves and Optics Revision"]
-};
-let reviews = [
-  { name: "Amara N.", role: "Senior Six", text: "The subject organization makes revision much easier. I can find exactly what I need." },
-  { name: "Michael K.", role: "Senior Five", text: "The worked mathematics resources have helped me understand topics I used to avoid." }
-];
-let users = [];
-
-// === BUTTON FUNCTIONALITY ===
-
-// 1. Button: View resources -> openResource('Biology') button
-app.get('/api/resources/:subject', (req, res) => {
-  const subject = req.params.subject;
-  res.json({ subject, files: resources[subject] || [] });
-});
-
-// 2. Button: Add review -> + Add review button
-app.post('/api/reviews', (req, res) => {
-  const { name, text } = req.body;
-  if(!name ||!text) return res.json({ success: false });
-  reviews.unshift({ name, role: "New member", text });
-  res.json({ success: true, reviews });
-});
-app.get('/api/reviews', (req, res) => res.json(reviews));
-
-// 3. Button: Login / Signup -> Log in button
-app.post('/api/login', (req, res) => {
-  const { email, password } = req.body;
-  const user = users.find(u => u.email === email);
-  if(user) {
-    res.json({ success: true, message: "Login successful", user });
-  } else {
-    // Auto-create for demo
-    const newUser = { id: Date.now(), email, password };
-    users.push(newUser);
-    res.json({ success: true, message: "Account created & logged in", user: newUser });
-  }
-});
-
-// 4. Button: Admin Upload -> Upload resource button in admin.html
-app.post('/api/upload', upload.single('file'), (req, res) => {
-  const { title, subject } = req.body;
-  if (!resources[subject]) resources[subject] = [];
-  resources[subject].push(title + ` (${req.file.filename})`);
-  res.json({ success: true, message: `Uploaded: ${title} to ${subject}` });
-});
-
-// Home
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
-
-app.listen(PORT, () => {
-  console.log(`✅ SCIENOVA running at http://localhost:${PORT}`);
-  console.log(`✅ Admin at http://localhost:${PORT}/admin.html`);
-});
+const 【entity-express¦canonical_name=express】=require('【entity-express¦canonical_name=express】'),fs=require('fs'),path=require('path'),multer=require('multer');
+const app=【entity-express¦canonical_name=express】(); app.use(【entity-express¦canonical_name=express】.json()); app.use(【entity-express¦canonical_name=express】.static(__dirname));
+const DATA=path.join(__dirname,'data'); const UP=path.join(__dirname,'uploads');
+if(!fs.existsSync(DATA)) fs.mkdirSync(DATA); if(!fs.existsSync(UP)) fs.mkdirSync(UP);
+const load=(f,def)=>{try{return JSON.parse(fs.readFileSync(path.join(DATA,f)))}catch(e){return def}};
+const save=(f,d)=>fs.writeFileSync(path.join(DATA,f),JSON.stringify(d,null,2));
+let users=load('users.json',[]), payments=load('payments.json',[]), papers=load('papers.json',[]), wallets=load('wallets.json',{});
+const upload=multer({dest:UP});
+app.post('/api/register',(req,res)=>{const {name,email,phone,password,pin,role}=req.body; if(users.find(u=>u.phone===phone)) return res.json({success:false,msg:'Phone already exists'}); const u={name,email,phone,password,pin,role,wallet:0,createdAt:new Date()}; users.push(u); wallets[phone]=0; save('users.json',users); save('wallets.json',wallets); res.json({success:true,user:u});});
+app.post('/api/login',(req,res)=>{const u=users.find(x=>x.phone===req.body.phone && x.password===req.body.password); res.json({success:!!u,user:u});});
+app.post('/api/deposit',(req,res)=>{const {phone,pin,amount,txId,method}=req.body; const u=users.find(x=>x.phone===phone); if(!u) return res.json({success:false,msg:'Phone not found'}); if(u.pin!==pin) return res.json({success:false,msg:'Wrong PIN for phone '+phone}); wallets[phone]=(wallets[phone]||0)+Number(amount); u.wallet=wallets[phone]; payments.push({phone,amount,txId,method,type:'deposit',createdAt:new Date()}); save('users.json',users); save('wallets.json',wallets); save('payments.json',payments); res.json({success:true,balance:wallets[phone]});});
+app.post('/api/buy',(req,res)=>{const {phone,pin,paperId,price}=req.body; const u=users.find(x=>x.phone===phone); if(!u||u.pin!==pin) return res.json({success:false,msg:'Wrong PIN for this phone'}); if(wallets[phone]<price) return res.json({success:false,msg:'Insufficient balance - Deposit first'}); wallets[phone]-=price; u.wallet=wallets[phone]; payments.push({phone,amount:-price,paperId,type:'purchase',createdAt:new Date()}); save('users.json',users); save('wallets.json',wallets); save('payments.json',payments); res.json({success:true,balance:wallets[phone]});});
+app.post('/api/contribute',upload.single('file'),(req,res)=>{const p={id:Date.now().toString(),title:req.body.title,subject:req.body.subject,level:req.body.level,school:req.body.school,filename:req.file?req.file.filename:'',views:0,downloads:0,status:'approved',locked:false,adminOnly:false,createdAt:new Date()}; papers.push(p); save('papers.json',papers); res.json({success:true,paper:p});});
+app.post('/api/admin-paper',upload.single('file'),(req,res)=>{const p={id:'ADMIN-'+Date.now(),title:req.body.title,subject:req.body.subject,level:req.body.level,author:req.body.author,school:req.body.school,price:req.body.price,desc:req.body.desc,filename:req.file?req.file.filename:'',views:0,downloads:0,status:'approved',locked:true,adminOnly:true,createdAt:new Date()}; papers.push(p); save('papers.json',papers); res.json({success:true,paper:p});});
+app.get('/api/papers',(req,res)=>res.json(papers));
+app.get('/api/payments',(req,res)=>res.json(payments));
+app.get('/api/users',(req,res)=>res.json(users));
+app.get('/api/search-user',(req,res)=>{res.json(users.find(x=>x.phone===req.query.phone)||null)});
+const PORT=process.env.PORT||10000; app.listen(PORT,()=>console.log('SCIENOVA on '+PORT));
