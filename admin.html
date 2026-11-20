@@ -1,8 +1,42 @@
-<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SCIENOVA Admin - Secret</title><link rel="stylesheet" href="style.css"></head>
-<body><div id="lock" class="paywall" style="margin-top:60px"><h2>🔒 SECRET ADMIN ONLY</h2><p class="muted">Enter Admin Access Code</p><input id="adminCode" type="password" placeholder="Access Code"><button class="btn" onclick="unlockAdmin()">Unlock Admin</button><p id="lockMsg" class="muted"></p></div>
-<div id="panel" class="hidden"><header><div class="logo">SCIENOVA <span>ADMIN</span></div><button onclick="location.href='index.html'">Back to Site</button></header>
-<div class="paywall"><h2>👤 Admin Profile</h2><input type="file" id="adminPic" accept="image/*" onchange="previewPic(event)"><img id="picPreview" style="width:90px;height:90px;border-radius:50%;object-fit:cover;display:none"><p>Admin: SCIENOVA • Code: SCIENOVA2026</p></div>
-<div class="paywall"><h2>📤 Upload Paper (Admin-Only Option)</h2><input id="pTitle" placeholder="Paper Title"><select id="pSubject"><option>Biology</option><option>Chemistry</option><option>Mathematics</option><option>Physics</option></select><input id="pPrice" type="number" value="1000"><label><input type="checkbox" id="pAdminOnly"> 🔒 Admin-Only Paper (others cannot tamper)</label><input type="file" id="pFile" accept=".pdf"><div class="bar"><i id="adminBar"></i></div><button class="btn" onclick="uploadPaper()">Upload Paper - Active Instantly</button><p id="upMsg" class="muted"></p></div>
-<div class="paywall"><h2>💰 Weekly / Monthly Payments</h2><button class="btn" onclick="loadPayments('weekly')">Weekly Payments</button><br><br><button class="btn gold" onclick="loadPayments('monthly')">Monthly Payments</button><div class="bar"><i id="payBar"></i></div><div id="payOut"></div></div>
-<div class="paywall"><h2>🔍 Search User by Phone</h2><input id="searchPhone" placeholder="Phone e.g 076659663"><button class="btn" onclick="searchUser()">Search User + View Wallet</button><div id="userOut"></div></div>
-</div><script src="admin.js"></script></body></html>
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>SCIENOVA SECRET ADMIN</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><div class="logo">SCIENOVA ADMIN 🔒 SECRET</div>
+<img id="adminPic" style="width:50px;height:50px;border-radius:50%;display:none">
+<input type="file" id="adminPicInput" accept="image/*"><button onclick="uploadAdminPic()">Upload Admin Profile Pic 📸</button>
+<button onclick="logoutAdmin()">Logout</button></header>
+
+<div id="loginBox"><h2>Enter Access Code</h2>
+<input id="adminPass" type="password" placeholder="Access Code">
+<button onclick="adminLogin()">Unlock Dashboard</button><p id="adminMsg"></p></div>
+
+<div id="adminPanel" style="display:none">
+  <h2>Admin Profile</h2><p>Name: SCIENOVA Admin | Email: admin@scienova.ug | Phone: 0761234567</p>
+  <button onclick="changeAdminPass()">Change Access Code</button>
+  <div id="stats"></div>
+  <button onclick="showTab('weekly')">Weekly Payments</button>
+  <button onclick="showTab('monthly')">Monthly Payments</button>
+  <button onclick="showTab('walletTx')">Wallet Transactions</button>
+  <button onclick="showTab('users')">Users - Search by Phone</button>
+  <button onclick="showTab('adminOnly')">🔒 Admin-Only Papers</button>
+  <div id="loadingBar" style="display:none">Loading... <span id="loadPct">0%</span></div>
+  <input id="searchPhone" placeholder="Search by phone 076..." oninput="searchByPhone(this.value)">
+  <div id="tabContent"></div>
+
+  <h3>🔒 Admin-Only Add Paper - Others CANNOT Tamper</h3>
+  <p>Locked papers: Only Admin can Edit/Delete. Contributors cannot tamper.</p>
+  <input id="adminTitle" placeholder="Title">
+  <select id="adminSubject"><option>Biology</option><option>Chemistry</option><option>Physics</option><option>Mathematics</option></select>
+  <input id="adminLevel" placeholder="Level S.4">
+  <input id="adminPrice" placeholder="Price UGX">
+  <input type="file" id="adminFile">
+  <label><input type="checkbox" id="adminLock" checked> Lock this paper - No one can edit except Admin</label>
+  <button onclick="addAdminPaper()">Add Paper Securely - LOCKED 🔒</button>
+  <div id="adminPapers"></div>
+
+  <h3>Announcements</h3><textarea id="announceText"></textarea><button onclick="sendAnnouncement()">Send Announcement</button>
+  <button onclick="exportExcel()">Export Payments to Excel (CSV)</button>
+  <button onclick="backupData()">Backup Data</button>
+</div>
+<script src="admin.js"></script>
+</body></html>
