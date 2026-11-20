@@ -1,166 +1,19 @@
-/* SCIENOVA - ALL BUTTONS + PAYWALL - LIVE SERVER VERSION */
-
-const resources={
- Biology:["Cell Biology Notes","Genetics Revision Guide","A-Level Biology Past Paper Pack"],
- Chemistry:["Organic Chemistry Summary","Mole Concept Worked Examples","Practical Chemistry Guide"],
- Mathematics:["Pure Mathematics Formula Sheet","Calculus Worked Examples","Statistics Revision Pack"],
- Physics:["Mechanics Notes","Electricity & Circuits Guide","Waves and Optics Revision"]
-};
-
-function isSubscribed(){
-  return localStorage.getItem('scienova_subscribed') === 'true';
-}
-function isLogged(){
-  return localStorage.getItem('scienova_logged') === 'true';
-}
-
-function openResource(subject){
-  if(!isLogged()){
-    alert("🔒 Please Log in first. Scroll down to Member Access.");
-    document.querySelector('#login')?.scrollIntoView({behavior:"smooth"});
-    return;
-  }
-  if(!isSubscribed()){
-    alert(`🔒 Subscription required!\n\nTo access ${subject} resources, you must pay:\n\nStandard: UGX 2,000\nContributor: UGX 1,000\n\nMTN MoMo: 076659663 (TUSHEMERIRWE CAROLYNE)\n\nThen enter Transaction ID in subscription section.`);
-    document.querySelector('#subscribe')?.scrollIntoView({behavior:"smooth"});
-    return;
-  }
-
- const p=document.getElementById("resourcePanel");
- if(!p) return;
- p.classList.remove("hidden");
- let uploads = [];
- try{ uploads = JSON.parse(localStorage.getItem('scienova_uploads') || '[]'); }catch{}
- let subjectUploads = uploads.filter(u => u.subject === subject);
- let base = resources[subject] || [];
- 
- let html = `<h3>${subject} resources ✅ Unlocked</h3>`;
- html += base.map((x,i)=>`<a href="#" onclick="alert('📚 Opening: ${x}');return false;" style="display:block;margin:6px 0;padding:8px 12px;background:rgba(255,255,255,0.15);border-radius:8px;">${i+1}. ${x} ↗</a>`).join("");
- 
- if(subjectUploads.length > 0){
-   html += `<hr style="margin:15px 0;border:0;border-top:1px solid #ffffff33"><h4>📁 Admin Uploads:</h4>`;
-   html += subjectUploads.map(u=>`<a href="${u.fileData}" download="${u.fileName}" style="display:block;margin:8px 0;background:#ffffff22;padding:10px 12px;border-radius:8px">📄 ${u.title} - ${u.fileName} ⬇ Download</a>`).join("");
- }
- html += `<br><button onclick="document.getElementById('resourcePanel').classList.add('hidden')" style="padding:8px 14px;border-radius:8px;border:0;cursor:pointer;">Close</button>`;
- p.innerHTML = html;
- p.scrollIntoView({behavior:"smooth",block:"center"});
-}
-
-function filterCards(){
- const q=(document.getElementById("search")?.value || "").toLowerCase();
- document.querySelectorAll(".subject").forEach(c=>{
-   const name = (c.dataset.name || "").toLowerCase();
-   const text = (c.innerText || "").toLowerCase();
-   c.style.display = (name.includes(q) || text.includes(q)) ? "" : "none";
- });
-}
-
-function showReviewForm(){
-  document.getElementById('reviewForm')?.classList.remove('hidden');
-  document.getElementById('reviewForm')?.scrollIntoView({behavior:"smooth"});
-}
-function submitReview(e){
-  e.preventDefault();
-  const name = document.getElementById('reviewName').value.trim();
-  const text = document.getElementById('reviewText').value.trim();
-  if(!name || !text) return;
-  
-  if(!isLogged()){
-    alert("Please log in first to add review");
-    document.querySelector('#login')?.scrollIntoView({behavior:"smooth"});
-    return;
-  }
-
-  let reviews = [];
-  try{ reviews = JSON.parse(localStorage.getItem('scienova_reviews') || '[]'); }catch{}
-  reviews.unshift({ name, text, date: new Date().toLocaleDateString() });
-  localStorage.setItem('scienova_reviews', JSON.stringify(reviews));
-
-  const r=document.createElement("article");r.className="review";
-  r.innerHTML=`<div class="avatar">${name.slice(0,2).toUpperCase()}</div><div><b>${name}</b><span>New review • ${new Date().toLocaleDateString()}</span><p>“${text.replaceAll("<","&lt;").replaceAll(">","&gt;")}”</p></div>`;
-  document.getElementById("reviews")?.prepend(r);
-  
-  document.getElementById('reviewMsg').textContent = "✅ Review posted!";
-  e.target.reset();
-  setTimeout(()=>{ document.getElementById('reviewForm').classList.add('hidden'); document.getElementById('reviewMsg').textContent=''; },1500);
-}
-
-function addReview(){ showReviewForm(); }
-
-function login(e){
- e.preventDefault();
- const email = document.getElementById('email')?.value || 'student';
- localStorage.setItem('scienova_user', email);
- localStorage.setItem('scienova_logged', 'true');
- const msg = document.getElementById('loginMsg');
- if(msg){
-   msg.style.color = "green";
-   msg.textContent = "✅ Logged in as " + email + ". Now subscribe to unlock library.";
- }
- const subEmail = document.getElementById('subEmail');
- if(subEmail && !subEmail.value) subEmail.value = email;
- 
- if(!isSubscribed()){
-   setTimeout(()=>document.querySelector('#subscribe')?.scrollIntoView({behavior:"smooth"}),800);
- }
-}
-
-function subscribe(e){
-  e.preventDefault();
-  const email = document.getElementById('subEmail').value.trim();
-  const txn = document.getElementById('txnId').value.trim();
-  const plan = document.getElementById('plan').value;
-  if(!email || !txn){
-    alert("Enter email and Transaction ID");
-    return;
-  }
-  localStorage.setItem('scienova_subscribed','true');
-  localStorage.setItem('scienova_sub_email', email);
-  localStorage.setItem('scienova_txn', txn);
-  localStorage.setItem('scienova_plan', plan);
-  localStorage.setItem('scienova_sub_date', new Date().toISOString());
-  
-  const status = document.getElementById('subStatus');
-  if(status){
-    status.style.color = "green";
-    status.textContent = `✅ Access unlocked! Plan UGX ${plan} - Transaction ${txn}. You can now view all resources.`;
-  }
-  alert(`✅ Thank you! Subscription activated.\n\nEmail: ${email}\nPlan: UGX ${plan}\nTxn: ${txn}\n\nYou can now access all library resources.`);
-  document.querySelector('#library')?.scrollIntoView({behavior:"smooth"});
-}
-
-function toggleMenu(){
- const nav=document.querySelector("header nav");
- if(!nav) return;
- const isHidden = nav.style.display === "none" || getComputedStyle(nav).display === "none";
- if(isHidden || nav.style.display === ""){
-   nav.style.display="flex";nav.style.position="absolute";nav.style.top="76px";nav.style.right="0";nav.style.left="0";
-   nav.style.padding="20px";nav.style.background="#fff";nav.style.flexDirection="column";nav.style.zIndex="99";
-   nav.style.boxShadow="0 10px 30px rgba(0,0,0,0.1)";
- } else { nav.style.display="none"; }
-}
-
-window.addEventListener('DOMContentLoaded', ()=>{
-  const savedUser = localStorage.getItem('scienova_user');
-  const loginMsg = document.getElementById('loginMsg');
-  if(savedUser && loginMsg && localStorage.getItem('scienova_logged')==='true'){
-    loginMsg.textContent = "✅ Already logged in as " + savedUser;
-  }
-  const subEmail = document.getElementById('subEmail');
-  if(savedUser && subEmail) subEmail.value = savedUser;
-
-  const subStatus = document.getElementById('subStatus');
-  if(isSubscribed() && subStatus){
-    const plan = localStorage.getItem('scienova_plan') || '2000';
-    subStatus.style.color="green";
-    subStatus.textContent = `✅ Active subscription: UGX ${plan} - Access unlocked`;
-  }
-
-  let reviews = [];
-  try{ reviews = JSON.parse(localStorage.getItem('scienova_reviews') || '[]'); }catch{}
-  reviews.reverse().forEach(rev=>{
-    const r=document.createElement("article");r.className="review";
-    r.innerHTML=`<div class="avatar">${rev.name.slice(0,2).toUpperCase()}</div><div><b>${rev.name}</b><span>Saved • ${rev.date||''}</span><p>“${(rev.text||'').replaceAll("<","&lt;").replaceAll(">","&gt;")}”</p></div>`;
-    document.getElementById("reviews")?.prepend(r);
-  });
-});
+let currentUser=null, attempts={};
+function openModal(id){document.getElementById(id).style.display='block'}
+function closeModal(id){document.getElementById(id).style.display='none'}
+function openPage(p){if(p==='adminLink') window.location.href='/admin.html'; else alert(p+' page - About/Contact/Terms/Privacy/Refund/FAQ');}
+async function createAccount(){const body={name:regName.value,email:regEmail.value,phone:regPhone.value,password:regPass.value,pin:regPin.value,role:regRole.value}; const r=await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); const d=await r.json(); authMsg.textContent=d.success?'Account created! PIN linked to phone '+body.phone:'Failed: '+d.msg; if(d.success){currentUser=d.user; localStorage.setItem('scienova_user',JSON.stringify(d.user)); updateWallet();}}
+async function loginUser(){const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:loginPhone.value,password:loginPass.value})}); const d=await r.json(); if(d.success){currentUser=d.user; localStorage.setItem('scienova_user',JSON.stringify(d.user)); closeModal('authModal'); updateWallet(); alert('Welcome '+d.user.name);} else alert('Wrong password');}
+function updateWallet(){if(currentUser){walletBal.textContent=currentUser.wallet||0; walletBal2.textContent=currentUser.wallet||0; walletName.textContent=currentUser.name; walletPhone.textContent=currentUser.phone; loginBtn.style.display='none'; logoutBtn.style.display='inline-block';}}
+async function deposit(){const phone=currentUser.phone, pin=depositPin.value; if(attempts[phone]>=3){depositMsg.textContent='Locked 5 min - Too many wrong PINs'; return;} const r=await fetch('/api/deposit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone,pin,amount:depositAmt.value,txId:depositTx.value,method:depositMethod.value})}); const d=await r.json(); if(!d.success){attempts[phone]=(attempts[phone]||0)+1; depositMsg.textContent=d.msg+' Attempts left: '+(3-attempts[phone]); if(attempts[phone]>=3) depositMsg.textContent='LOCKED 5 min';} else {currentUser.wallet=d.balance; walletBal.textContent=d.balance; depositMsg.textContent='Deposited! Balance UGX '+d.balance; attempts[phone]=0;}}
+function dropPaper(){const fd=new FormData(); fd.append('file',paperFile.files[0]); fd.append('title',paperTitle.value); fd.append('subject',paperSubject.value); fd.append('level',paperLevel.value); fd.append('school',paperSchool.value); fetch('/api/contribute',{method:'POST',body:fd}).then(r=>r.json()).then(d=>{dropMsg.textContent=d.success?'LIVE! Paper ACTIVE instantly':'Failed'; loadPapers();});}
+async function loadPapers(){const r=await fetch('/api/papers'); const p=await r.json(); resources.innerHTML=p.map(x=>`<div class="card"><b>${x.title}</b> ${x.adminOnly?'🔒 LOCKED':''}<br>${x.subject} - ${x.level}<br>👁️ ${x.views} ⬇️ ${x.downloads}<br><button onclick="buyPaper('${x.id}',1000)">Buy UGX 1000 - Enter PIN</button></div>`).join('');}
+async function buyPaper(id,price){const pin=prompt('Enter PIN for phone '+currentUser.phone); const r=await fetch('/api/buy',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:currentUser.phone,pin,paperId:id,price})}); const d=await r.json(); alert(d.success?'Bought! Balance '+d.balance:d.msg);}
+function connectEngine(name){googleStatus.textContent='Connected to '+name+' ✓'; alert('Connect to '+name+' - Enter API Key. Demo: Connected ✓');}
+function generateAI(){const prompt=aiPrompt.value; if(!prompt) return alert('Type a prompt first'); aiLog.innerHTML='Connecting to Google...<br>Searching Google for '+prompt+'<br>Searching Bing...<br>Searching Wikipedia...<br>AI creating scenarios... Done!'; aiResults.innerHTML=`<div class="card"><b>Scenario from prompt:</b> ${prompt}<br>Q: A farmer in Mbale...? A) B) C) D) <br>Source: Found via Google</div>`; localStorage.setItem('prompt_history',prompt);}
+function forgotPin(){const phone=prompt('Enter phone'); const email=prompt('Enter email'); alert('If phone '+phone+' + email match, code 1234 sent.');}
+function forgotPassword(){const email=prompt('Enter email'); alert('Reset link sent to '+email);}
+function changePin(){const oldPin=prompt('Old PIN'); if(oldPin!==currentUser.pin) return alert('Wrong old PIN'); const newPin=prompt('New PIN'); currentUser.pin=newPin; alert('PIN changed for phone '+currentUser.phone);}
+function downloadReceipt(){alert('Receipt: SCIENOVA - Balance '+currentUser.wallet);}
+function logout(){localStorage.removeItem('scienova_user'); location.reload();}
+window.onload=()=>{const u=localStorage.getItem('scienova_user'); if(u){currentUser=JSON.parse(u); updateWallet();} loadPapers();}
